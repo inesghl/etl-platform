@@ -37,6 +37,16 @@ class ETL(models.Model):
         blank=True,
         help_text="Parsed ETL configuration"
     )
+    # Example expected structure (from config.json inside the ETL zip):
+    # {
+    #   "entry_point": "main.py",
+    #   "python_version": "3.11",
+    #   "input_requirements": {
+    #       "facture_data": {...},
+    #       "mapping": {...}
+    #   },
+    #   "expected_outputs": ["result.xlsx", "deleted.xlsx"]
+    # }
 
 
     # Validation status
@@ -74,6 +84,40 @@ class ETL(models.Model):
 
     def __str__(self):
         return f"{self.name} v{self.version}"
+
+    # Convenience helpers so the rest of the code does not have to
+    # know the exact JSON structure every time.
+    @property
+    def entry_point(self) -> str:
+        """
+        Python file that should be executed as the ETL entry point.
+        Defaults to 'main.py' if not present in config.
+        """
+        return self.config.get("entry_point", "main.py")
+
+    @property
+    def python_version(self) -> str | None:
+        """
+        Requested Python version for this ETL (e.g. '3.11').
+        Used later to decide whether the current worker can run it.
+        """
+        return self.config.get("python_version")
+
+    @property
+    def input_requirements(self) -> dict:
+        """
+        Dict describing required / optional inputs.
+        Keys are logical file names (e.g. 'facture_data').
+        """
+        return self.config.get("input_requirements", {}) or {}
+
+    @property
+    def expected_outputs(self) -> list[str]:
+        """
+        List of filenames that the ETL is expected to generate
+        inside the outputs directory.
+        """
+        return self.config.get("expected_outputs", []) or []
 
 
 
@@ -156,6 +200,34 @@ class Execution(models.Model):
     stdout_log = models.TextField(blank=True, help_text="Standard output")
     stderr_log = models.TextField(blank=True, help_text="Error output")
     error_message = models.TextField(blank=True)
+
+    # Runtime / environment details (filled by the execution engine)
+    runtime_config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Snapshot of the runtime configuration passed to the ETL "
+            "process (paths to inputs, outputs directory, etc.)."
+        ),
+    )
+    python_version_used = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Python version that actually ran this execution (e.g. '3.11.8').",
+    )
+    venv_path = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Filesystem path to the uv/virtual environment used for this run.",
+    )
+    dependencies_installed = models.BooleanField(
+        default=False,
+        help_text="True when requirements.txt was installed successfully in the venv.",
+    )
+    dependencies_log = models.TextField(
+        blank=True,
+        help_text="Raw log output from the dependency installation step (uv / pip).",
+    )
 
 
     class Meta:
@@ -344,6 +416,64 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.action} - {self.timestamp:%Y-%m-%d %H:%M}"
+
+
+
+
+class Notification(models.Model):
+    """
+    Simple user notification model.
+
+    Used to inform users/admins about validation results, dependency
+    installation failures, execution completion, etc.
+    """
+
+    LEVEL_CHOICES = [
+        ("info", "Info"),
+        ("warning", "Warning"),
+        ("error", "Error"),
+        ("success", "Success"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Who should see this notification
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+
+    # Optional context
+    etl = models.ForeignKey(
+        ETL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="notifications",
+    )
+    execution = models.ForeignKey(
+        Execution,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="notifications",
+    )
+
+    # Payload
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="info")
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "notifications"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"[{self.level}] {self.title}"
 
 
 

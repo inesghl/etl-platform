@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from ..accounts.permissions import IsAdmin, IsAdminOrReadOnly
 from .models import ETL, Execution, InputFile, Notification, OutputFile
+from .services.execution_engine import run_execution
 from .serializers import (
     AuditLogSerializer,
     ETLSerializer,
@@ -91,7 +92,30 @@ class ETLViewSet(viewsets.ModelViewSet):
                     ]
                 }
             )
-        serializer.save(created_by=self.request.user)
+        etl: ETL = serializer.save(created_by=self.request.user)
+
+        # After saving, extract the zip into MEDIA_ROOT/extracted/<etl_id>
+        extracted_root = settings.MEDIA_ROOT / "extracted" / str(etl.id)
+        os.makedirs(extracted_root, exist_ok=True)
+
+        import zipfile
+        import json as _json
+
+        with zipfile.ZipFile(etl.zip_file.path, "r") as zf:
+            zf.extractall(extracted_root)
+
+        etl.extracted_path = str(extracted_root)
+
+        # Try to load config.json from the extracted folder
+        config_path = extracted_root / "config.json"
+        if config_path.exists():
+            try:
+                with config_path.open("r", encoding="utf-8") as f:
+                    etl.config = _json.load(f)
+            except Exception as cfg_err:  # keep it simple, store error for admin
+                etl.validation_errors = [f"Failed to parse config.json: {cfg_err}"]
+
+        etl.save(update_fields=["extracted_path", "config", "validation_errors"])
 
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdmin])
     def validate(self, request, pk=None):
@@ -218,24 +242,11 @@ class ExecutionViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Simulate execution lifecycle
-        from django.utils import timezone
+        # Run the full execution pipeline synchronously.
+        run_execution(execution)
 
-        execution.status = "RUNNING"
-        execution.started_at = timezone.now()
-        execution.stdout_log = "Execution started...\n(Engine not yet implemented)"
-        execution.save(update_fields=["status", "started_at", "stdout_log"])
-
-        # For now immediately mark as success. Later you will replace this with
-        # a real background execution engine that uses uv/venv.
-        execution.status = "SUCCESS"
-        execution.completed_at = timezone.now()
-        execution.return_code = 0
-        execution.stdout_log += "\nExecution finished successfully (simulated)."
-        execution.save(
-            update_fields=["status", "completed_at", "return_code", "stdout_log"]
-        )
-
+        # Reload to reflect all updated fields
+        execution.refresh_from_db()
         return Response(ExecutionSerializer(execution).data)
 
 

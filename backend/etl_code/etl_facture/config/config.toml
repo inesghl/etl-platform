@@ -1,0 +1,14 @@
+[project]
+name = "orf_facture"
+version = "0.1.0"
+requires-python = "==3.12.1"
+
+[execution]
+deduplicate = true
+log_level = "INFO"
+
+[rg.DF_A]
+amount_min = 0
+
+[rg.DF_B]
+amount_min = 10

@@ -1,0 +1,8 @@
+# Virtual environment
+/env
+# Env variables
+.env
+# Database
+*.sqlite
+# PyCache
+__pycache__

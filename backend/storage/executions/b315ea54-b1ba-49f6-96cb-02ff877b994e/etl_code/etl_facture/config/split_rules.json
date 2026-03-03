@@ -1,0 +1,10 @@
+{
+  "DF_A": {
+    "column": "amount",
+    "values": [ 10,40]
+  },
+  "DF_B": {
+    "column": "amount",
+    "values": [20,30]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "execution_id": "b315ea54-b1ba-49f6-96cb-02ff877b994e",
+  "etl_id": "fc92c5d4-36e8-456c-af46-523ed0b68e97",
+  "work_directory": "C:\\Users\\ghali\\Downloads\\etl-platform-cusror-20260225T090035Z-1-001\\etl-platform-cusror\\backend\\storage\\executions\\b315ea54-b1ba-49f6-96cb-02ff877b994e",
+  "inputs": {},
+  "outputs": {
+    "directory": "C:\\Users\\ghali\\Downloads\\etl-platform-cusror-20260225T090035Z-1-001\\etl-platform-cusror\\backend\\storage\\executions\\b315ea54-b1ba-49f6-96cb-02ff877b994e\\outputs"
+  },
+  "config": {}
+}

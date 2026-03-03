@@ -1,0 +1,8 @@
+2026-02-17 10:37:30,622 | INFO | etl.loader | Input loaded: 40 rows
+2026-02-17 10:37:30,629 | INFO | etl.loader | Schema validated
+2026-02-17 10:37:30,629 | INFO | etl.splitter | DF_A created: 13 rows
+2026-02-17 10:37:30,629 | INFO | etl.splitter | DF_B created: 27 rows
+2026-02-17 10:37:30,629 | WARNING | etl.splitter | Deleted rows: 0
+2026-02-17 10:37:30,629 | INFO | etl.rules | RG amount_min=0 removed 0 rows
+2026-02-17 10:37:30,635 | INFO | etl.rules | RG amount_min=10 removed 0 rows
+2026-02-17 10:37:31,073 | INFO | __main__ | ETL completed successfully

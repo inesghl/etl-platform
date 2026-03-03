@@ -1,0 +1,12 @@
+{
+  "input_schema": {
+    "id": "int",
+    "date": "datetime64[ns]",
+    "category": "str",
+    "amount": "float"
+  },
+  "output_schemas": {
+    "DF_A": ["id", "date", "amount"],
+    "DF_B": ["id", "category", "amount"]
+  }
+}

@@ -1,0 +1,17 @@
+[project]
+name = "etl-facture"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "et-xmlfile==2.0.0",
+    "numpy==2.4.2",
+    "openpyxl==3.1.5",
+    "pandas==2.2.3",
+    "python-dateutil==2.9.0.post0",
+    "pytz==2025.2",
+    "six==1.17.0",
+    "toml==0.10.2",
+    "tzdata==2025.3",
+]

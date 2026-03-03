@@ -1,0 +1,11 @@
+{
+  "input_files": [
+    "data/inputINES(data).csv",
+    "data/input.xlsx"
+  ],
+
+  "output_excel": "outputs/final_outputs.xlsx",
+  "deleted_rows": "deleted/deleted_rows.xlsx",
+  "logs_dir": "logs"
+}
+

@@ -1,0 +1,10 @@
+{
+  "execution_id": "0ad55ba5-4b4e-4b08-89cb-c48b1306d685",
+  "etl_id": "fc92c5d4-36e8-456c-af46-523ed0b68e97",
+  "work_directory": ".",
+  "inputs": {},
+  "outputs": {
+    "directory": "outputs"
+  },
+  "config": {}
+}

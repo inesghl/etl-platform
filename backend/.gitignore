@@ -5,6 +5,8 @@ build/
 dist/
 wheels/
 *.egg-info
+backend/storage/
+backend/runtime_config.json
 
 # Virtual environments
 .venv
